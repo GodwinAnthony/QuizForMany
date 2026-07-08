@@ -1,0 +1,45 @@
+# -----------------------------------------------------------------------------
+# QuizPulse — Render Blueprint
+# -----------------------------------------------------------------------------
+# This deploys the app as a SINGLE Render Web Service: the backend serves
+# both the REST API, the Socket.IO endpoint, and the built frontend from
+# the same origin. That's the simplest and most robust setup — no CORS
+# to worry about, one URL to share.
+#
+# HOW TO USE
+#   1. Push this repo to GitHub.
+#   2. In Render, click New → Blueprint and point it at the repo.
+#   3. Render will pick up this file and create the service for you.
+#
+# HOW IT WORKS
+#   • Build command installs both workspaces and produces frontend/dist.
+#   • Start command runs the backend, which serves frontend/dist and
+#     falls back to index.html for client-side routes (SPA catch-all).
+#   • No env vars are strictly required — the CORS layer auto-allows
+#     any *.onrender.com host, and the frontend uses window.location.origin
+#     when VITE_API_URL is not set.
+# -----------------------------------------------------------------------------
+
+services:
+  - type: web
+    name: quizpulse
+    env: node
+    plan: free
+    # Root of the repo — no subdirectory prefix.
+    buildCommand: npm run render-build
+    startCommand: npm run render-start
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: 20
+      # PORT is provided by Render automatically — do NOT set it here.
+      # CORS_ORIGIN left blank on purpose: the built-in *.onrender.com
+      # allow-pattern handles the auto-generated URL. Set this explicitly
+      # if you attach a custom domain.
+      - key: CORS_ORIGIN
+        value: ""
+      # Leave VITE_API_URL blank so the frontend uses window.location.origin
+      # at runtime — the same URL Render assigns to this service.
+      - key: VITE_API_URL
+        value: ""
